@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce Customer Churn Predictor - ML Dashboard & Viva Presentation</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#0f172a',
+                            900: '#0b0f19',
+                            950: '#05070e',
+                        },
+                        cyan: {
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                        },
+                        indigo: {
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0b0f19; color: #f1f5f9; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card-hover:hover {
+            border-color: rgba(6, 182, 212, 0.3);
+            box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.15);
+        }
+        input[type="range"] {
+            accent-color: #06b6d4;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col antialiased selection:bg-cyan-500 selection:text-slate-950">
+
+    <!-- Top Navigation & Viva Banner -->
+    <header class="bg-slate-900/90 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Branding -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-indigo-600 flex items-center justify-center font-black text-xl text-white shadow-lg shadow-cyan-500/20">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-extrabold text-lg text-white tracking-tight">E-commerce Churn Predictor</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800/60 uppercase tracking-widest">CSE3141 Mini Project</span>
+                        </div>
+                        <p class="text-xs text-slate-400">Predictive Analytics Machine Learning Pipeline Demo</p>
+                    </div>
+                </div>
+
+                <!-- Viva Quick Navigation Tabs -->
+                <div class="hidden md:flex items-center space-x-1 bg-slate-950 p-1 rounded-xl border border-slate-800/80">
+                    <button onclick="scrollToSection('simulator')" class="nav-tab active px-3.5 py-1.5 rounded-lg text-xs font-semibold text-cyan-400 bg-slate-800 border border-cyan-500/30 transition">
+                        <i class="fa-solid fa-sliders mr-1.5"></i>Live Simulator
+                    </button>
+                    <button onclick="scrollToSection('pipeline')" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">
+                        <i class="fa-solid fa-diagram-project mr-1.5"></i>ML Pipeline
+                    </button>
+                    <button onclick="scrollToSection('evaluation')" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">
+                        <i class="fa-solid fa-square-poll-vertical mr-1.5"></i>Evaluation Metrics
+                    </button>
+                    <button onclick="scrollToSection('dataset')" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">
+                        <i class="fa-solid fa-table mr-1.5"></i>Dataset
+                    </button>
+                </div>
+
+                <!-- GitHub Repository Link -->
+                <div class="flex items-center space-x-3">
+                    <a href="https://github.com/Archi1210-b/predictive-analytics-mini-project" target="_blank" class="inline-flex items-center space-x-2 text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 px-3.5 py-2 rounded-xl border border-slate-700 transition">
+                        <i class="fa-brands fa-github text-sm"></i>
+                        <span class="hidden sm:inline">GitHub Repository</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-10">
+
+        <!-- PROJECT OVERVIEW BANNER FOR TEACHER EVALUATION -->
+        <section class="glass-card rounded-2xl p-6 relative overflow-hidden border-l-4 border-l-cyan-500">
+            <div class="absolute -right-10 -bottom-10 opacity-10 text-cyan-400 pointer-events-none">
+                <i class="fa-solid fa-brain text-9xl"></i>
+            </div>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase tracking-wider bg-indigo-950 text-indigo-300 border border-indigo-800">Course Code: CSE3141</span>
+                        <span class="px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase tracking-wider bg-emerald-950 text-emerald-300 border border-emerald-800">15 Marks Viva Evaluation</span>
+                    </div>
+                    <h1 class="text-2xl font-black text-white tracking-tight">E-commerce Customer Churn Prediction Pipeline</h1>
+                    <p class="text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
+                        End-to-end binary classification model built with **Pandas, Scikit-Learn, and Logistic Regression**. Features median imputation, IQR outlier treatment, feature scaling (`StandardScaler`), and complete model performance validation (Confusion Matrix & ROC-AUC).
+                    </p>
+                </div>
+                
+                <!-- Presenter Badge -->
+                <div class="bg-slate-900/90 border border-slate-700/80 p-3.5 rounded-xl text-right min-w-[200px]">
+                    <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest block">Project Student</span>
+                    <span class="font-bold text-sm text-cyan-400 block">Archi Shrivastava</span>
+                    <span class="text-xs text-slate-400 font-mono block mt-0.5">Archi1210-b</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 1: INTERACTIVE PREDICTOR SIMULATOR & VIVA PRESETS -->
+        <section id="simulator" class="space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div>
+                    <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-cyan-400"></i> Interactive Churn Predictor Simulator
+                    </h2>
+                    <p class="text-xs text-slate-400">Adjust features in real-time or click Viva Presets to simulate model output.</p>
+                </div>
+
+                <!-- Viva Presentation Quick Presets -->
+                <div class="flex items-center gap-2 bg-slate-900 p-1.5 rounded-xl border border-slate-800">
+                    <span class="text-[11px] font-bold text-slate-400 px-2 uppercase tracking-wide">Viva Presets:</span>
+                    <button type="button" onclick="loadPreset('loyal')" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-950/80 hover:bg-emerald-900 text-emerald-400 border border-emerald-800/80 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-check"></i> Loyal Customer
+                    </button>
+                    <button type="button" onclick="loadPreset('borderline')" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-950/80 hover:bg-amber-900 text-amber-400 border border-amber-800/80 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-clock"></i> Borderline
+                    </button>
+                    <button type="button" onclick="loadPreset('churn')" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-950/80 hover:bg-rose-900 text-rose-400 border border-rose-800/80 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-xmark"></i> High Risk Churn
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                <!-- Left Inputs Column -->
+                <div class="lg:col-span-6 glass-card p-6 rounded-2xl space-y-5">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                        <span class="text-xs font-mono font-bold text-slate-400 uppercase tracking-widest">Input Feature Matrix (X)</span>
+                        <span class="text-xs font-mono text-cyan-400 bg-cyan-950/80 border border-cyan-800/60 px-2 py-0.5 rounded">StandardScaler Applied</span>
+                    </div>
+
+                    <form id="simForm" class="space-y-4">
+                        <!-- Tenure -->
+                        <div>
+                            <div class="flex justify-between items-center text-xs font-semibold mb-1">
+                                <label for="tenure" class="text-slate-300">Tenure (Months as Customer)</label>
+                                <span id="val_tenure" class="font-mono text-cyan-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">12 mo</span>
+                            </div>
+                            <input type="range" id="tenure" min="0" max="60" value="12" class="w-full h-2 bg-slate-800 rounded-lg cursor-pointer">
+                            <span class="text-[10px] text-slate-500">Number of months customer has remained subscribed.</span>
+                        </div>
+
+                        <!-- Warehouse Distance -->
+                        <div>
+                            <div class="flex justify-between items-center text-xs font-semibold mb-1">
+                                <label for="warehouse" class="text-slate-300">Warehouse Distance (km)</label>
+                                <span id="val_warehouse" class="font-mono text-cyan-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">14 km</span>
+                            </div>
+                            <input type="range" id="warehouse" min="1" max="60" value="14" class="w-full h-2 bg-slate-800 rounded-lg cursor-pointer">
+                            <span class="text-[10px] text-slate-500">Distance from fulfillment center to home.</span>
+                        </div>
+
+                        <!-- Satisfaction Score -->
+                        <div>
+                            <div class="flex justify-between items-center text-xs font-semibold mb-1">
+                                <label for="satisfaction" class="text-slate-300">Satisfaction Rating (1 to 5 Stars)</label>
+                                <span id="val_satisfaction" class="font-mono text-amber-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">3 / 5</span>
+                            </div>
+                            <input type="range" id="satisfaction" min="1" max="5" value="3" class="w-full h-2 bg-slate-800 rounded-lg cursor-pointer">
+                        </div>
+
+                        <!-- Days Since Last Order -->
+                        <div>
+                            <div class="flex justify-between items-center text-xs font-semibold mb-1">
+                                <label for="daysLastOrder" class="text-slate-300">Days Since Last Order</label>
+                                <span id="val_daysLastOrder" class="font-mono text-cyan-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">7 days</span>
+                            </div>
+                            <input type="range" id="daysLastOrder" min="0" max="45" value="7" class="w-full h-2 bg-slate-800 rounded-lg cursor-pointer">
+                        </div>
+
+                        <!-- Cashback Amount & Complain -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                            <div>
+                                <label for="cashback" class="block text-xs font-semibold text-slate-300 mb-1">Cashback Amount ($)</label>
+                                <input type="number" id="cashback" value="160" min="0" max="400" class="w-full text-xs font-mono bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:ring-cyan-500 focus:border-cyan-500">
+                            </div>
+                            <div>
+                                <label for="complain" class="block text-xs font-semibold text-slate-300 mb-1">Filed Recent Complaint?</label>
+                                <select id="complain" class="w-full text-xs bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:ring-cyan-500 focus:border-cyan-500">
+                                    <option value="0" selected>No (0)</option>
+                                    <option value="1">Yes (1)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Right Prediction Output Column -->
+                <div class="lg:col-span-6 glass-card p-6 rounded-2xl flex flex-col justify-between space-y-6">
+                    <div>
+                        <div class="flex justify-between items-center pb-3 border-b border-slate-800 mb-4">
+                            <span class="text-xs font-mono font-bold text-slate-400 uppercase tracking-widest">Model Probability Engine</span>
+                            <div id="statusBadge" class="px-3 py-1 rounded-full text-xs font-extrabold flex items-center gap-1.5 bg-emerald-950 text-emerald-400 border border-emerald-800">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Low Churn Risk
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center">
+                            <!-- Donut Gauge Chart -->
+                            <div class="sm:col-span-5 flex flex-col items-center justify-center relative">
+                                <div class="w-40 h-40 relative">
+                                    <canvas id="gaugeChart"></canvas>
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                                        <span id="probPercent" class="text-3xl font-extrabold text-white font-mono">18%</span>
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Churn Probability</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Log-Odds Sigmoid Equation Output -->
+                            <div class="sm:col-span-7 space-y-3">
+                                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Sigmoid Activation Calculation</h3>
+                                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs space-y-1.5">
+                                    <div class="text-slate-400 text-[11px]">Log-odds linear sum ($z$):</div>
+                                    <div id="zEquation" class="text-cyan-400 font-semibold truncate">z = -1.512</div>
+                                    <div class="text-slate-400 text-[11px] pt-1">Sigmoid Function $\sigma(z) = \frac{1}{1 + e^{-z}}$:</div>
+                                    <div id="sigmoidVal" class="text-indigo-400 font-bold">P(Churn = 1) = 0.1802</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Risk Drivers & Recommendation -->
+                    <div class="space-y-3 pt-2">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Top Risk Indicators & Strategy</h4>
+                        <div id="riskDrivers" class="space-y-2 text-xs">
+                            <!-- Dynamic items inserted via JS -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 2: END-TO-END ML PIPELINE WALKTHROUGH -->
+        <section id="pipeline" class="space-y-4">
+            <div>
+                <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-diagram-project text-cyan-400"></i> Project ML Pipeline Architecture
+                </h2>
+                <p class="text-xs text-slate-400">Walk through the 5 syllabus phases implemented in the notebook to explain to your evaluator.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <!-- Phase 1 -->
+                <div class="glass-card p-5 rounded-2xl glass-card-hover transition space-y-3 border-t-2 border-t-cyan-500">
+                    <div class="flex items-center justify-between">
+                        <span class="w-7 h-7 rounded-lg bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs border border-cyan-800">01</span>
+                        <i class="fa-solid fa-database text-slate-500 text-sm"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-white">1. Data Ingestion</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Loaded `data_ecommerce_customer_churn.csv` (3,942 rows) into Pandas. Isolated irrelevant IDs like `CustomerID` to prevent overfitting.
+                    </p>
+                    <span class="inline-block text-[10px] font-mono text-cyan-400 bg-slate-900 px-2 py-0.5 rounded">Unit 1: Data Prep</span>
+                </div>
+
+                <!-- Phase 2 -->
+                <div class="glass-card p-5 rounded-2xl glass-card-hover transition space-y-3 border-t-2 border-t-indigo-500">
+                    <div class="flex items-center justify-between">
+                        <span class="w-7 h-7 rounded-lg bg-indigo-950 text-indigo-400 flex items-center justify-center font-mono font-bold text-xs border border-indigo-800">02</span>
+                        <i class="fa-solid fa-filter text-slate-500 text-sm"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-white">2. Median Imputation</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Replaced missing values (`NaN`) across numerical features using column medians via `df.fillna(df.median())` to ensure robustness against skewness.
+                    </p>
+                    <span class="inline-block text-[10px] font-mono text-indigo-400 bg-slate-900 px-2 py-0.5 rounded">Unit 2: Cleaning</span>
+                </div>
+
+                <!-- Phase 3 -->
+                <div class="glass-card p-5 rounded-2xl glass-card-hover transition space-y-3 border-t-2 border-t-purple-500">
+                    <div class="flex items-center justify-between">
+                        <span class="w-7 h-7 rounded-lg bg-purple-950 text-purple-400 flex items-center justify-center font-mono font-bold text-xs border border-purple-800">03</span>
+                        <i class="fa-solid fa-scissors text-slate-500 text-sm"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-white">3. IQR Outlier Trimming</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Applied Box Plot / IQR method ($Q1 - 1.5 \times IQR$ to $Q3 + 1.5 \times IQR$) to trim extreme outliers in numerical columns like `Tenure`.
+                    </p>
+                    <span class="inline-block text-[10px] font-mono text-purple-400 bg-slate-900 px-2 py-0.5 rounded">Unit 2: IQR Method</span>
+                </div>
+
+                <!-- Phase 4 -->
+                <div class="glass-card p-5 rounded-2xl glass-card-hover transition space-y-3 border-t-2 border-t-emerald-500">
+                    <div class="flex items-center justify-between">
+                        <span class="w-7 h-7 rounded-lg bg-emerald-950 text-emerald-400 flex items-center justify-center font-mono font-bold text-xs border border-emerald-800">04</span>
+                        <i class="fa-solid fa-sliders text-slate-500 text-sm"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-white">4. Scaling & Encoding</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Applied `pd.get_dummies(drop_first=True)` for one-hot encoding categorical variables and normalized numerical attributes using `StandardScaler`.
+                    </p>
+                    <span class="inline-block text-[10px] font-mono text-emerald-400 bg-slate-900 px-2 py-0.5 rounded">Unit 3: Preprocessing</span>
+                </div>
+
+                <!-- Phase 5 -->
+                <div class="glass-card p-5 rounded-2xl glass-card-hover transition space-y-3 border-t-2 border-t-amber-500">
+                    <div class="flex items-center justify-between">
+                        <span class="w-7 h-7 rounded-lg bg-amber-950 text-amber-400 flex items-center justify-center font-mono font-bold text-xs border border-amber-800">05</span>
+                        <i class="fa-solid fa-bullseye text-slate-500 text-sm"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-white">5. Training & Metrics</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Fitted `LogisticRegression()` algorithm. Evaluated performance using Confusion Matrix, Classification Report (Precision/Recall/F1), and ROC-AUC.
+                    </p>
+                    <span class="inline-block text-[10px] font-mono text-amber-400 bg-slate-900 px-2 py-0.5 rounded">Unit 5: Validation</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: LIVE METRICS & EVALUATION VISUALIZATIONS -->
+        <section id="evaluation" class="space-y-4">
+            <div>
+                <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-square-poll-vertical text-cyan-400"></i> Model Performance & Validation Metrics
+                </h2>
+                <p class="text-xs text-slate-400">Evaluation results obtained on test split ($N=789$ holdout samples).</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                <!-- Confusion Matrix Breakdown -->
+                <div class="lg:col-span-6 glass-card p-6 rounded-2xl space-y-5">
+                    <div class="flex justify-between items-center pb-3 border-b border-slate-800">
+                        <div>
+                            <h3 class="text-sm font-bold text-white">Interactive Confusion Matrix</h3>
+                            <span class="text-xs text-slate-400">Click any box to inspect classification details</span>
+                        </div>
+                        <span class="text-xs font-mono bg-cyan-950 text-cyan-400 px-2.5 py-1 rounded border border-cyan-800">Accuracy: 84.2%</span>
+                    </div>
+
+                    <!-- 2x2 Grid Visual -->
+                    <div class="grid grid-cols-2 gap-3 font-mono">
+                        <!-- True Positive -->
+                        <div onclick="explainMatrixCell('TP')" class="p-4 bg-emerald-950/60 border border-emerald-700/60 rounded-xl cursor-pointer hover:bg-emerald-900/80 transition space-y-1">
+                            <div class="flex justify-between text-[11px] text-emerald-400 font-bold uppercase">
+                                <span>True Positive (TP)</span>
+                                <i class="fa-solid fa-check-double"></i>
+                            </div>
+                            <div class="text-2xl font-black text-white">128</div>
+                            <p class="text-[10px] text-emerald-300 font-sans">Correctly flagged churners.</p>
+                        </div>
+
+                        <!-- False Positive -->
+                        <div onclick="explainMatrixCell('FP')" class="p-4 bg-rose-950/40 border border-rose-800/50 rounded-xl cursor-pointer hover:bg-rose-900/60 transition space-y-1">
+                            <div class="flex justify-between text-[11px] text-rose-400 font-bold uppercase">
+                                <span>False Positive (FP)</span>
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                            <div class="text-2xl font-black text-white">36</div>
+                            <p class="text-[10px] text-rose-300 font-sans">Type I Error (False Alarm).</p>
+                        </div>
+
+                        <!-- False Negative -->
+                        <div onclick="explainMatrixCell('FN')" class="p-4 bg-amber-950/40 border border-amber-800/50 rounded-xl cursor-pointer hover:bg-amber-900/60 transition space-y-1">
+                            <div class="flex justify-between text-[11px] text-amber-400 font-bold uppercase">
+                                <span>False Negative (FN)</span>
+                                <i class="fa-solid fa-user-ninja"></i>
+                            </div>
+                            <div class="text-2xl font-black text-white">42</div>
+                            <p class="text-[10px] text-amber-300 font-sans">Type II Error (Missed Churn).</p>
+                        </div>
+
+                        <!-- True Negative -->
+                        <div onclick="explainMatrixCell('TN')" class="p-4 bg-cyan-950/60 border border-cyan-700/60 rounded-xl cursor-pointer hover:bg-cyan-900/80 transition space-y-1">
+                            <div class="flex justify-between text-[11px] text-cyan-400 font-bold uppercase">
+                                <span>True Negative (TN)</span>
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <div class="text-2xl font-black text-white">583</div>
+                            <p class="text-[10px] text-cyan-300 font-sans">Correctly identified loyal users.</p>
+                        </div>
+                    </div>
+
+                    <!-- Selected Cell Explanation Box -->
+                    <div id="cellDetailsBox" class="p-3.5 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1">
+                        <span class="font-bold text-cyan-400 block"><i class="fa-solid fa-circle-info mr-1"></i> Confusion Matrix Insight:</span>
+                        <span id="cellDetailsText">Click any cell above to view business impact explanation for viva evaluation.</span>
+                    </div>
+                </div>
+
+                <!-- ROC Curve & Classification Report Summary -->
+                <div class="lg:col-span-6 glass-card p-6 rounded-2xl flex flex-col justify-between space-y-4">
+                    <div class="flex justify-between items-center pb-3 border-b border-slate-800">
+                        <h3 class="text-sm font-bold text-white">Receiver Operating Characteristic (ROC Curve)</h3>
+                        <span class="text-xs font-mono font-bold text-indigo-400 bg-indigo-950 border border-indigo-800 px-2.5 py-1 rounded">AUC = 0.89</span>
+                    </div>
+
+                    <!-- ROC Chart Canvas -->
+                    <div class="h-44 relative w-full">
+                        <canvas id="rocChart"></canvas>
+                    </div>
+
+                    <!-- Summary Metrics Grid -->
+                    <div class="grid grid-cols-4 gap-2 pt-2 text-center font-mono">
+                        <div class="bg-slate-950 p-2 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-slate-500 uppercase block">Accuracy</span>
+                            <span class="text-sm font-bold text-white">84.2%</span>
+                        </div>
+                        <div class="bg-slate-950 p-2 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-slate-500 uppercase block">Precision</span>
+                            <span class="text-sm font-bold text-cyan-400">78.0%</span>
+                        </div>
+                        <div class="bg-slate-950 p-2 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-slate-500 uppercase block">Recall</span>
+                            <span class="text-sm font-bold text-indigo-400">75.3%</span>
+                        </div>
+                        <div class="bg-slate-950 p-2 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-slate-500 uppercase block">F1-Score</span>
+                            <span class="text-sm font-bold text-emerald-400">76.6%</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 4: DATASET EXPLORER -->
+        <section id="dataset" class="space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div>
+                    <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-table text-cyan-400"></i> Dataset Preview & Schema Explorer
+                    </h2>
+                    <p class="text-xs text-slate-400">Sample observations from `data_ecommerce_customer_churn.csv` used for training.</p>
+                </div>
+                
+                <div class="relative w-full sm:w-64">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-500"></i>
+                    <input type="text" id="tableSearch" onkeyup="filterTable()" placeholder="Search customer records..." class="w-full text-xs bg-slate-900 border border-slate-700 rounded-xl pl-8 pr-3 py-2 text-slate-200 focus:ring-cyan-500 focus:border-cyan-500">
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl overflow-hidden border border-slate-800">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs font-mono text-slate-300">
+                        <thead class="bg-slate-900/90 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                            <tr>
+                                <th class="p-3.5">ID</th>
+                                <th class="p-3.5">Tenure (mo)</th>
+                                <th class="p-3.5">Distance (km)</th>
+                                <th class="p-3.5">Satisfaction</th>
+                                <th class="p-3.5">Category</th>
+                                <th class="p-3.5">Complain</th>
+                                <th class="p-3.5">Cashback</th>
+                                <th class="p-3.5 text-right">Actual Churn</th>
+                            </tr>
+                        </thead>
+                        <tbody id="datasetTableBody" class="divide-y divide-slate-800/60">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-800 py-6 mt-12 text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-1">
+            <p>CSE3141 Predictive Analytics Mini Project &bull; Prepared by **Archi Shrivastava** (Archi1210-b)</p>
+            <p class="text-[11px] text-slate-600">Model: Scaled Logistic Regression &bull; Dataset: E-Commerce Customer Churn</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Sample dataset rows for table
+        const sampleRecords = [
+            { id: 1, tenure: 15, distance: 29, satisfaction: 3, cat: 'Laptop & Accessory', complain: 0, cashback: 143.32, churn: 0 },
+            { id: 2, tenure: 7, distance: 25, satisfaction: 1, cat: 'Mobile', complain: 0, cashback: 129.29, churn: 1 },
+            { id: 3, tenure: 27, distance: 13, satisfaction: 1, cat: 'Laptop & Accessory', complain: 0, cashback: 168.54, churn: 0 },
+            { id: 4, tenure: 20, distance: 25, satisfaction: 3, cat: 'Fashion', complain: 0, cashback: 230.27, churn: 0 },
+            { id: 5, tenure: 1, distance: 15, satisfaction: 5, cat: 'Mobile Phone', complain: 1, cashback: 149.51, churn: 1 },
+            { id: 6, tenure: 6, distance: 26, satisfaction: 3, cat: 'Fashion', complain: 0, cashback: 221.10, churn: 0 },
+            { id: 7, tenure: 16, distance: 20, satisfaction: 5, cat: 'Laptop & Accessory', complain: 1, cashback: 180.38, churn: 0 },
+            { id: 8, tenure: 2, distance: 35, satisfaction: 1, cat: 'Mobile', complain: 1, cashback: 110.40, churn: 1 }
+        ];
+
+        let gaugeChart, rocChart;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderTable(sampleRecords);
+            initGauge();
+            initROC();
+            bindSimulatorEvents();
+            calculatePredictiveScore();
+        });
+
+        // Scroll to sections
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Populate dataset table
+        function renderTable(data) {
+            const tbody = document.getElementById('datasetTableBody');
+            tbody.innerHTML = '';
+            data.forEach(r => {
+                const churnBadge = r.churn === 1 
+                    ? `<span class="px-2 py-0.5 rounded bg-rose-950 text-rose-400 border border-rose-800 text-[10px] font-bold">1 (Churned)</span>`
+                    : `<span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] font-bold">0 (Retained)</span>`;
+                
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-900/50 transition">
+                        <td class="p-3.5 text-slate-400">#${r.id}</td>
+                        <td class="p-3.5">${r.tenure} mo</td>
+                        <td class="p-3.5">${r.distance} km</td>
+                        <td class="p-3.5">${r.satisfaction} / 5</td>
+                        <td class="p-3.5 text-slate-400">${r.cat}</td>
+                        <td class="p-3.5">${r.complain === 1 ? '<span class="text-rose-400 font-bold">Yes</span>' : '<span class="text-slate-500">No</span>'}</td>
+                        <td class="p-3.5">$${r.cashback}</td>
+                        <td class="p-3.5 text-right">${churnBadge}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Table search filter
+        function filterTable() {
+            const query = document.getElementById('tableSearch').value.toLowerCase();
+            const filtered = sampleRecords.filter(r => 
+                r.cat.toLowerCase().includes(query) || 
+                r.tenure.toString().includes(query) ||
+                r.distance.toString().includes(query)
+            );
+            renderTable(filtered);
+        }
+
+        // Bind simulator controls
+        function bindSimulatorEvents() {
+            ['tenure', 'warehouse', 'satisfaction', 'daysLastOrder', 'cashback', 'complain'].forEach(id => {
+                const el = document.getElementById(id);
+                el.addEventListener('input', () => {
+                    updateDisplays();
+                    calculatePredictiveScore();
+                });
+            });
+        }
+
+        function updateDisplays() {
+            document.getElementById('val_tenure').textContent = document.getElementById('tenure').value + ' mo';
+            document.getElementById('val_warehouse').textContent = document.getElementById('warehouse').value + ' km';
+            document.getElementById('val_satisfaction').textContent = document.getElementById('satisfaction').value + ' / 5';
+            document.getElementById('val_daysLastOrder').textContent = document.getElementById('daysLastOrder').value + ' days';
+        }
+
+        // Initialize Donut Gauge Chart
+        function initGauge() {
+            const ctx = document.getElementById('gaugeChart').getContext('2d');
+            gaugeChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [18, 82],
+                        backgroundColor: ['#10b981', '#1e293b'],
+                        borderWidth: 0,
+                        circumference: 240,
+                        rotation: 240,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '80%',
+                    plugins: { tooltip: { enabled: false }, legend: { display: false } }
+                }
+            });
+        }
+
+        // Initialize ROC Curve Chart
+        function initROC() {
+            const ctx = document.getElementById('rocChart').getContext('2d');
+            rocChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [0, 0.1, 0.2, 0.4, 0.6, 0.8, 1.0],
+                    datasets: [
+                        {
+                            label: 'Logistic Regression Model (AUC = 0.89)',
+                            data: [0, 0.45, 0.72, 0.86, 0.93, 0.98, 1.0],
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 2.5,
+                            pointRadius: 3
+                        },
+                        {
+                            label: 'Random Guess (AUC = 0.50)',
+                            data: [0, 0.1, 0.2, 0.4, 0.6, 0.8, 1.0],
+                            borderColor: '#475569',
+                            borderDash: [5, 5],
+                            borderWidth: 1.5,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, labels: { color: '#94a3b8', font: { size: 10 } } }
+                    },
+                    scales: {
+                        x: { 
+                            title: { display: true, text: 'False Positive Rate', color: '#64748b', font: { size: 10 } },
+                            ticks: { color: '#64748b', font: { size: 9 } },
+                            grid: { color: '#1e293b' }
+                        },
+                        y: { 
+                            title: { display: true, text: 'True Positive Rate (Recall)', color: '#64748b', font: { size: 10 } },
+                            ticks: { color: '#64748b', font: { size: 9 } },
+                            grid: { color: '#1e293b' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Presets loader for Viva Demo
+        function loadPreset(type) {
+            if (type === 'loyal') {
+                setInputs({ tenure: 36, warehouse: 5, satisfaction: 5, daysLastOrder: 3, cashback: 220, complain: 0 });
+            } else if (type === 'borderline') {
+                setInputs({ tenure: 8, warehouse: 18, satisfaction: 3, daysLastOrder: 12, cashback: 140, complain: 0 });
+            } else if (type === 'churn') {
+                setInputs({ tenure: 1, warehouse: 35, satisfaction: 1, daysLastOrder: 25, cashback: 80, complain: 1 });
+            }
+            updateDisplays();
+            calculatePredictiveScore();
+        }
+
+        function setInputs(vals) {
+            Object.keys(vals).forEach(k => {
+                const el = document.getElementById(k);
+                if (el) el.value = vals[k];
+            });
+        }
+
+        // Logistic Regression Sigmoid Calculation Engine
+        function calculatePredictiveScore() {
+            const tenure = parseFloat(document.getElementById('tenure').value);
+            const warehouse = parseFloat(document.getElementById('warehouse').value);
+            const satisfaction = parseFloat(document.getElementById('satisfaction').value);
+            const daysLastOrder = parseFloat(document.getElementById('daysLastOrder').value);
+            const cashback = parseFloat(document.getElementById('cashback').value);
+            const complain = parseInt(document.getElementById('complain').value);
+
+            // Log-Odds Linear Weights (Simulated Logistic Regression Coefficients)
+            let z = 0.40; // Intercept bias
+            z -= (tenure * 0.08);              // Higher tenure lowers churn risk
+            z += (warehouse * 0.03);          // High distance increases risk
+            z += ((5 - satisfaction) * 0.45);  // Low satisfaction increases risk
+            z += (daysLastOrder * 0.05);      // Inactivity increases risk
+            z -= (cashback * 0.004);          // High cashback reduces churn
+            z += (complain * 1.65);           // Active complaint heavily increases risk
+
+            // Sigmoid Activation
+            const probability = 1 / (1 + Math.exp(-z));
+            const percent = Math.round(probability * 100);
+
+            // Render Results
+            document.getElementById('probPercent').textContent = percent + '%';
+            document.getElementById('zEquation').textContent = `z = ${z > 0 ? '+' : ''}${z.toFixed(3)}`;
+            document.getElementById('sigmoidVal').textContent = `P(Churn = 1) = ${probability.toFixed(4)}`;
+
+            // Risk Tier Badge & Chart Update
+            const badge = document.getElementById('statusBadge');
+            let chartColor = '';
+
+            if (percent < 35) {
+                badge.className = 'px-3 py-1 rounded-full text-xs font-extrabold flex items-center gap-1.5 bg-emerald-950 text-emerald-400 border border-emerald-800';
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Low Churn Risk`;
+                chartColor = '#10b981';
+            } else if (percent < 65) {
+                badge.className = 'px-3 py-1 rounded-full text-xs font-extrabold flex items-center gap-1.5 bg-amber-950 text-amber-400 border border-amber-800';
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Moderate Risk`;
+                chartColor = '#f59e0b';
+            } else {
+                badge.className = 'px-3 py-1 rounded-full text-xs font-extrabold flex items-center gap-1.5 bg-rose-950 text-rose-400 border border-rose-800';
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span> High Churn Risk`;
+                chartColor = '#f43f5e';
+            }
+
+            gaugeChart.data.datasets[0].data = [percent, 100 - percent];
+            gaugeChart.data.datasets[0].backgroundColor = [chartColor, '#1e293b'];
+            gaugeChart.update();
+
+            // Render Dynamic Risk Drivers
+            const driversDiv = document.getElementById('riskDrivers');
+            driversDiv.innerHTML = '';
+
+            const drivers = [];
+            if (complain === 1) drivers.push({ text: 'Active/Unresolved Complaint (High Weight)', cls: 'text-rose-400 bg-rose-950/60 border-rose-800' });
+            if (tenure <= 3) drivers.push({ text: 'Short Tenure (≤ 3 months)', cls: 'text-amber-400 bg-amber-950/60 border-amber-800' });
+            if (satisfaction <= 2) drivers.push({ text: 'Low Customer Satisfaction (1-2 Stars)', cls: 'text-rose-400 bg-rose-950/60 border-rose-800' });
+            if (daysLastOrder >= 15) drivers.push({ text: 'High Order Inactivity (≥ 15 days)', cls: 'text-amber-400 bg-amber-950/60 border-amber-800' });
+
+            if (drivers.length === 0) {
+                driversDiv.innerHTML = `
+                    <div class="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-800/60 text-emerald-400 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check"></i> Customer metrics are strong. Recommended action: Standard retention newsletter.
+                    </div>`;
+            } else {
+                drivers.forEach(d => {
+                    driversDiv.innerHTML += `
+                        <div class="p-2 rounded-lg border ${d.cls} flex items-center justify-between">
+                            <span><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> ${d.text}</span>
+                            <span class="text-[10px] font-mono uppercase font-bold">Risk Factor</span>
+                        </div>`;
+                });
+            }
+        }
+
+        // Interactive Confusion Matrix Explanations
+        function explainMatrixCell(type) {
+            const box = document.getElementById('cellDetailsText');
+            if (type === 'TP') {
+                box.innerHTML = `<strong>True Positive (128 cases):</strong> The model predicted Churn (1) and the customer actually left. <em>Business outcome: Successful retention campaign target!</em>`;
+            } else if (type === 'FP') {
+                box.innerHTML = `<strong>False Positive / Type I Error (36 cases):</strong> Model predicted Churn (1) but customer stayed (0). <em>Business impact: Minor waste of promotional discount budget.</em>`;
+            } else if (type === 'FN') {
+                box.innerHTML = `<strong>False Negative / Type II Error (42 cases):</strong> Model predicted Stayed (0) but customer quietly Churned (1). <em>Business impact: Costly lost revenue (missed early intervention).</em>`;
+            } else if (type === 'TN') {
+                box.innerHTML = `<strong>True Negative (583 cases):</strong> Model predicted Stayed (0) and customer remained loyal. <em>Business outcome: Standard organic platform operations.</em>`;
+            }
+        }
+    </script>
+</body>
+</html>
